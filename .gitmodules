@@ -1,0 +1,6 @@
+[submodule "nexus-news"]
+	path = nexus-news
+	url = git@github.com:rislam169/nexus-news.git
+[submodule "nexus-api"]
+	path = nexus-api
+	url = git@github.com:rislam169/nexus-api.git
