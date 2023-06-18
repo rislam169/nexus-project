@@ -1,0 +1,57 @@
+version: "3.8"
+services:
+  nexus-api:
+    build:
+      context: ./nexus-api
+      dockerfile: Dockerfile
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=news_api
+      - DB_USERNAME=secret
+      - DB_PASSWORD=password
+    depends_on:
+      - db
+
+    ports:
+      - 8000:8000
+    volumes:
+      - ./nexus-api:/app/nexus-api
+
+    networks:
+      - app
+
+  nexus-news:
+    build:
+      context: ./nexus-news
+      dockerfile: Dockerfile
+    tty: true
+    ports:
+      - 3000:3000
+    volumes:
+      - ./nexus-news:/app/nexus-news
+      - ./nexus-news:/app/nexus-news/node_modules
+    depends_on:
+      - nexus-api
+
+    networks:
+      - app
+  db:
+    image: mysql:8.0
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_DATABASE=news_api
+      - MYSQL_USER=secret
+      - MYSQL_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=password
+    volumes:
+      - db-data:/var/lib/mysql
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge
+
+volumes:
+  db-data: ~
