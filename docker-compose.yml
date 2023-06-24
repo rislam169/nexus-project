@@ -4,13 +4,14 @@ services:
     build:
       context: ./nexus-api
       dockerfile: Dockerfile
+    container_name: nexus_api
     environment:
-      - DB_HOST=db
-      - DB_DATABASE=news_api
+      - DB_HOST=mysql
+      - DB_DATABASE=nexus_db
       - DB_USERNAME=secret
       - DB_PASSWORD=password
     depends_on:
-      - db
+      - mysql
       - meilisearch
 
     ports:
@@ -25,27 +26,28 @@ services:
     build:
       context: ./nexus-news
       dockerfile: Dockerfile
+    container_name: nexus_news
     tty: true
     ports:
       - 3000:3000
     volumes:
-      - ./nexus-news:/app/
-      - ./nexus-news:/app/node_modules
+      - ./nexus-news:/app/nexus-news
+      - ./nexus-news:/app/nexus-news/node_modules
     depends_on:
       - nexus-api
 
     networks:
       - nexus
 
-  db:
+  mysql:
     image: mysql:8.0
     ports:
       - 3306:3306
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_DATABASE: nexus_db
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_PASSWORD: password
+      MYSQL_USER: secret
     volumes:
       - db-data:/var/lib/mysql
     networks:
