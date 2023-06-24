@@ -11,14 +11,15 @@ services:
       - DB_PASSWORD=password
     depends_on:
       - db
+      - meilisearch
 
     ports:
       - 8000:8000
     volumes:
-      - ./nexus-api:/app
+      - ./nexus-api:/var/www
 
     networks:
-      - app
+      - nexus
 
   nexus-news:
     build:
@@ -28,30 +29,51 @@ services:
     ports:
       - 3000:3000
     volumes:
-      - ./nexus-news:/app/nexus-news
-      - ./nexus-news:/app/nexus-news/node_modules
+      - ./nexus-news:/app/
     depends_on:
       - nexus-api
 
     networks:
-      - app
+      - nexus
+
   db:
     image: mysql:8.0
     ports:
       - 3306:3306
     environment:
-      - MYSQL_DATABASE=news_api
-      - MYSQL_USER=secret
-      - MYSQL_PASSWORD=password
-      - MYSQL_ROOT_PASSWORD=password
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
     volumes:
       - db-data:/var/lib/mysql
     networks:
-      - app
+      - nexus
+
+  meilisearch:
+    image: "getmeili/meilisearch:latest"
+    ports:
+      - "${FORWARD_MEILISEARCH_PORT:-7700}:7700"
+    volumes:
+      - "sail-meilisearch:/meili_data"
+    networks:
+      - nexus
+    healthcheck:
+      test:
+        - CMD
+        - wget
+        - "--no-verbose"
+        - "--spider"
+        - "http://localhost:7700/health"
+      retries: 3
+      timeout: 5s
 
 networks:
-  app:
+  nexus:
     driver: bridge
 
 volumes:
   db-data: ~
+
+  sail-meilisearch:
+    driver: local
